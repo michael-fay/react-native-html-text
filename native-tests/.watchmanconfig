@@ -1,0 +1,12 @@
+{
+  "ignore_dirs": [
+    "node_modules",
+    "ios/Pods",
+    "android/build",
+    "android/.gradle",
+    "build",
+    ".gradle",
+    ".cxx",
+    "buck-out"
+  ]
+}

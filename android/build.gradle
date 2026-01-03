@@ -26,7 +26,7 @@ def getExtOrIntegerDefault(name) {
 }
 
 android {
-  namespace "com.fabrichtmltext"
+  namespace "io.michaelfay.fabrichtmltext"
 
   compileSdkVersion getExtOrIntegerDefault("compileSdkVersion")
 
@@ -74,4 +74,39 @@ def kotlin_version = getExtOrDefault("kotlinVersion")
 dependencies {
   implementation "com.facebook.react:react-android"
   implementation "org.jetbrains.kotlin:kotlin-stdlib:$kotlin_version"
+  implementation "com.googlecode.owasp-java-html-sanitizer:owasp-java-html-sanitizer:20220608.1"
+}
+
+// Task to copy custom ShadowNode files over codegen output
+// This enables custom measureContent() for proper Yoga layout measurement
+task copyCustomShadowNodes(type: Copy) {
+  description = "Copy custom ShadowNode implementation over codegen output"
+  from("src/main/jni/react/renderer/components/FabricHTMLTextSpec") {
+    include "ShadowNodes.h"
+    include "ShadowNodes.cpp"
+    include "FabricHTMLTextState.h"
+    include "FabricHTMLTextState.cpp"
+  }
+  into("build/generated/source/codegen/jni/react/renderer/components/FabricHTMLTextSpec")
+}
+
+// Task to copy custom CMakeLists.txt over codegen output
+// This adds the Android log library for __android_log_print support
+task copyCustomCMakeLists(type: Copy) {
+  description = "Copy custom CMakeLists.txt with log library linkage"
+  from("src/main/jni") {
+    include "CMakeLists.txt"
+  }
+  into("build/generated/source/codegen/jni")
+}
+
+// Hook into the build process - run after codegen but before native compile
+afterEvaluate {
+  tasks.matching { it.name.startsWith("generateCodegenArtifacts") }.configureEach {
+    finalizedBy(copyCustomShadowNodes, copyCustomCMakeLists)
+  }
+  // Also run before any CMake configure task
+  tasks.matching { it.name.startsWith("configureCMake") }.configureEach {
+    dependsOn(copyCustomShadowNodes, copyCustomCMakeLists)
+  }
 }

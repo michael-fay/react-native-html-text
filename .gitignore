@@ -2,6 +2,13 @@
 #
 .DS_Store
 
+# Claude Code
+.claude/
+
+# Speckit
+.specify/
+specs/
+
 # XDE
 .expo/
 
@@ -84,3 +91,4 @@ android/generated
 
 # React Native Nitro Modules
 nitrogen/
+coverage/
